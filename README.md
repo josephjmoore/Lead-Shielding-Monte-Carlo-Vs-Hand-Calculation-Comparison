@@ -317,10 +317,7 @@ uv run python plot_comparison.py
 ---
 
 ## 8. Next steps
-- Photon spectrum tally at the detector: scattered continuum and lead K X-rays (~75–85 keV).
-- Effective dose using ICRP-116 conversion coefficients.
 - Sensitivity of B_MC to the inner void radius.
-- Concrete shield, where buildup is much larger and the finite-medium effect should be stronger.
 - Co-60 (1.173 and 1.332 MeV) and multilayer shields.
 
 ---
