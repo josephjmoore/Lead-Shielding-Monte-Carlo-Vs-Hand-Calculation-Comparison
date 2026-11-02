@@ -167,6 +167,23 @@ Air kerma rates in µGy/h at the detector radius.
 | 6 | 7.04 | 1.899 ± 0.071 | 2.243 ± 0.089 | 2.232 | 0.847 |
 | 7 | 8.22 | 1.95 ± 0.13 | 2.20 ± 0.11 | 2.364 | 0.887 |
 ---
+### 4.4 Photon spectrum at the detector
+
+![Photon spectrum and air kerma share](Results/spectrum.png)
+
+*Left: photon flux per unit lethargy at the detector (1 m, 1 GBq) for 1, 3, 5 and 7 cm of lead. Right: share of the total air kerma delivered at each energy, per unit lethargy.*
+
+**Method.** A flux tally in the detector shell with 300 log-spaced energy bins (1–700 keV, ~2 % wide), plus 0.5 keV bins from 70 to 90 keV to resolve the lead X-rays. Each thickness's spectrum is saved as a CSV. For plotting, neighbouring bins are merged until each is at least 5 % wide (except in the 70–90 keV region), to reduce statistical noise at large thicknesses. The air kerma share is each bin's flux × E (μen/ρ)_air, divided by the total.
+
+**Observations:**
+
+- **Uncollided peak (662 keV)** dominates the flux and shrinks relative to the scattered continuum as the lead thickens.
+- **Scattered continuum.** Photons reaching the detector are mostly **forward-scattered**, keeping most of their energy. The flux falls steeply below ~300 keV, the energy left after a 90° scatter, because low-energy photons are absorbed quickly in lead by the photoelectric effect.
+- **No backscatter edge (184 keV).** The detector sees only transmitted photons. Backscattered photons travel back towards the source and are absorbed in the lead, whose mean free path at 184 keV is about 1 mm.
+- **Lead K X-rays** appear as sharp peaks at ~73/75 keV (Kα) and ~85/87 keV (Kβ), emitted after photoelectric absorption in the lead, and the flux drops just above the **K-edge (88 keV)**, where lead absorbs much more strongly. Weak **lead L X-rays** (~10.5 and 12.6 keV) are visible only behind the thinnest shield.
+- **Where the dose comes from.** Although the X-rays and low-energy scattered photons are numerous, they deliver almost none of the air kerma. The scattered dose comes almost entirely from forward-scattered photons above ~300 keV. This is why the air kerma buildup factor is smaller than the ratio of total to uncollided flux (1.81 vs 1.98 at 5 cm).
+
+**Uncollided share of the air kerma.** The plot box gives 83, 69, 62 and 60 % at 1, 3, 5 and 7 cm. These are slightly higher than 1/B from the sweep (80, 64, 55 and 51 %), because the merged bin containing 662 keV also includes photons that scattered through small angles. At 7 cm the spectrum is also statistically noisy. The values from 1/B (Section 4.3) are the more accurate ones.
 
 ## 5. Discussion
 
