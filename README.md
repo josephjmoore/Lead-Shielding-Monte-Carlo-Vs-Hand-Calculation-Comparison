@@ -169,7 +169,7 @@ Air kerma rates in µGy/h at the detector radius.
 ---
 ### 4.4 Photon spectrum at the detector
 
-![Photon spectrum and air kerma share](Results/spectrum.png)
+![Photon spectrum and air kerma share](spectrum.png)
 
 *Left: photon flux per unit lethargy at the detector (1 m, 1 GBq) for 1, 3, 5 and 7 cm of lead. Right: share of the total air kerma delivered at each energy, per unit lethargy.*
 
