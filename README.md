@@ -185,6 +185,27 @@ Air kerma rates in µGy/h at the detector radius.
 
 **Uncollided share of the air kerma.** The plot box gives 83, 69, 62 and 60 % at 1, 3, 5 and 7 cm. These are slightly higher than 1/B from the sweep (80, 64, 55 and 51 %), because the merged bin containing 662 keV also includes photons that scattered through small angles. At 7 cm the spectrum is also statistically noisy. The values from 1/B (Section 4.3) are the more accurate ones.
 
+### 4.5 Effective dose
+
+The effective dose rate (ICRP-116, AP geometry) was tallied with an `EnergyFunctionFilter` built from `openmc.data.dose_coefficients('photon', geometry='AP')`, log-log interpolated.
+
+**Reliability.** The effective dose tally uses the same photon transport as the air kerma tally; only the response function differs. The transport is validated in Sections 3 and 4: the uncollided air kerma matches the analytic attenuation at every thickness, and in the infinite-medium model OpenMC reproduces the GP buildup factor within 1 % from 1 to 6 cm. The effective dose response is validated with no lead, where OpenMC gives 77.28 µSv/h, matching the analytic value (unshielded flux × 3.17 pSv·cm² at 662 keV). The 7 cm result is the least certain, as analog Monte Carlo begins to undersample deep penetration there (Section 5.3).
+
+| Lead (cm) | Effective dose rate (µSv/h) | E/K (Sv/Gy) | B, air kerma | B, effective dose |
+|---|---|---|---|---|
+| 0 | 77.28 | 1.021 | 1.000 | 1.000 |
+| 1 | 29.77 ± 0.04 | 1.023 | 1.243 | 1.246 |
+| 2 | 10.48 ± 0.04 | 1.024 | 1.417 | 1.421 |
+| 3 | 3.574 ± 0.023 | 1.025 | 1.568 | 1.575 |
+| 4 | 1.194 ± 0.009 | 1.025 | 1.689 | 1.697 |
+| 5 | 0.390 ± 0.007 | 1.026 | 1.814 | 1.822 |
+| 6 | 0.127 ± 0.003 | 1.025 | 1.899 | 1.908 |
+| 7 | 0.041 ± 0.002 | 1.027 | 1.951 | 1.963 |
+
+*Finite lead shell, detector at 1 m, 1 GBq Cs-137. E/K is effective dose ÷ air kerma. B, effective dose is total ÷ uncollided effective dose.*
+
+Behind lead, effective dose follows air kerma closely: E/K rises only slightly with thickness (1.021 to 1.027 Sv/Gy), and the effective-dose buildup factor is within 0.6 % of the air kerma buildup factor. This is consistent with the spectrum (Section 4.4): the scattered dose comes mainly from forward-scattered photons above ~300 keV, where effective dose per unit air kerma is close to its value at 662 keV. Air kerma results for lead can therefore be converted to effective dose with the 662 keV ratio to within 1 %.
+
 ## 5. Discussion
 
 ### 5.1 The finite-medium effect

@@ -24,6 +24,8 @@ spectrum_bins = np.unique(np.concatenate([
  
 #Conversion from MeV/g/s to Gy/h
 MeV_per_g_s_to_Gy_per_h = MeV_to_J * g_to_kg * s_to_h
+#Conversion from pSv/s to uSv/h
+pSv_per_s_to_uSv_per_h = 3600 * 1e-6
  
  
 def build_geometry(shield_thickness):
@@ -95,6 +97,8 @@ K_dot_uncollided_hand_array = []
 B_openmc_array = []
 B_openmc_err_array = []
 B_hand_array = []
+H_dot_array =[]
+H_dot_err_array = []
  
 for t in shield_thickness:
  
@@ -125,7 +129,15 @@ for t in shield_thickness:
     spectrum_tally.filters.append(openmc.EnergyFilter(spectrum_bins))
     spectrum_tally.scores.append('flux')
 
-    tallies = openmc.Tallies([tally, uncollided_tally, air_kerma_tally, spectrum_tally])
+    dose_energy, dose_coeff = openmc.data.dose_coefficients('photon', geometry='AP')  #eV, pSv*cm^2 (ICRP coeff)
+    dose_filter = openmc.EnergyFunctionFilter(dose_energy, dose_coeff)
+    dose_filter.interpolation = 'log-log'
+    dose_tally = openmc.Tally(name='effective dose tally')
+    dose_tally.filters.append(cell_filter)
+    dose_tally.filters.append(dose_filter)
+    dose_tally.scores.append('flux')
+
+    tallies = openmc.Tallies([tally, uncollided_tally, air_kerma_tally, spectrum_tally, dose_tally])
  
     model = openmc.Model(geometry=geometry, materials=materials, settings=settings, tallies=tallies)
  
@@ -140,14 +152,18 @@ for t in shield_thickness:
         uncollided_tally_mean = uncollided_result.mean.item()
         uncollided_tally_err = uncollided_result.std_dev.item()
  
-        dose_result = sp.get_tally(name='air kerma tally')
-        dose_tally_mean = dose_result.mean.item()
-        dose_tally_err = dose_result.std_dev.item()
+        air_kerma_result = sp.get_tally(name='air kerma tally')
+        air_kerma_tally_mean = air_kerma_result.mean.item()
+        air_kerma_tally_err = air_kerma_result.std_dev.item()
 
         #One value per energy bin
         spectrum_result = sp.get_tally(name='spectrum tally')
         spectrum_tally_mean = spectrum_result.mean.flatten()
         spectrum_tally_err = spectrum_result.std_dev.flatten()
+
+        effective_dose = sp.get_tally(name = 'effective dose tally')
+        effective_dose_mean = effective_dose.mean.item()
+        effective_dose_err = effective_dose.std_dev.item()
 
     #Spectrum: flux in each energy bin in photons/cm^2/s, saved to its own CSV per thickness
     spectrum = pd.DataFrame({
@@ -169,15 +185,20 @@ for t in shield_thickness:
     if t > 0:
         mu_openmc = -np.log(uncollided_tally_mean) / t
     #Total air kerma rate (uncollided + scattered), in Gy/h
-    K_dot_openmc = dose_tally_mean / V_det * S * MeV_per_g_s_to_Gy_per_h
-    K_dot_openmc_err = dose_tally_err / V_det * S * MeV_per_g_s_to_Gy_per_h
+    K_dot_openmc = air_kerma_tally_mean / V_det * S * MeV_per_g_s_to_Gy_per_h
+    K_dot_openmc_err = air_kerma_tally_err / V_det * S * MeV_per_g_s_to_Gy_per_h
     #Uncollided air kerma rate, in Gy/h (all at 662 keV, so e_dep applies)
     K_dot_uncollided_openmc = uncollided_flux_openmc * e_dep * MeV_per_g_s_to_Gy_per_h
     K_dot_uncollided_openmc_err = uncollided_tally_err / V_det * S * e_dep * MeV_per_g_s_to_Gy_per_h
     #Monte Carlo buildup factor
     B_openmc = K_dot_openmc / K_dot_uncollided_openmc
     #Error on B, two air kerma rates in quadrature
-    B_openmc_err = B_openmc * np.sqrt((dose_tally_err / dose_tally_mean)**2 + (uncollided_tally_err / uncollided_tally_mean)**2)
+    B_openmc_err = B_openmc * np.sqrt((air_kerma_tally_err / air_kerma_tally_mean)**2 + (uncollided_tally_err / uncollided_tally_mean)**2)
+    #Effective dose rate (ICRP-116, AP), in uSv/h
+    H_dot_openmc = effective_dose_mean / V_det * S * pSv_per_s_to_uSv_per_h
+    H_dot_openmc_err = effective_dose_err / V_det * S * pSv_per_s_to_uSv_per_h
+    #Effective dose per unit air kerma, in Sv/Gy (both rates converted to per hour, uSv and uGy)
+    E_over_K = H_dot_openmc / (K_dot_openmc * Gy_to_uGy)
  
     #Hand calc at this thickness
     mfp = mu * t
@@ -196,6 +217,8 @@ for t in shield_thickness:
     B_openmc_array.append(B_openmc)
     B_openmc_err_array.append(B_openmc_err)
     B_hand_array.append(B_hand)
+    H_dot_array.append(H_dot_openmc)
+    H_dot_err_array.append(H_dot_openmc_err)
  
     print(f'\n--- Lead thickness {t} cm ({mfp:.2f} mfp) ---')
     print(f'OpenMC air kerma rate   : {K_dot_openmc * Gy_to_uGy:.4g} +/- {K_dot_openmc_err * Gy_to_uGy:.2g} uGy/h')
@@ -203,6 +226,8 @@ for t in shield_thickness:
     print(f'Difference               : {K_dot_openmc / K_dot_hand - 1:.1%}')
     print(f'OpenMC buildup factor    : {B_openmc:.2f} +/- {B_openmc_err:.2f}')
     print(f'Hand-calc buildup factor : {B_hand:.2f}')
+    print(f'OpenMC Effective ICRP Dose : {H_dot_openmc:.4g} +/- {H_dot_openmc_err:.2g} uSv/h')
+    print(f'Open Effective dose air kerma ratio: {E_over_K:.2f} Sv/Gy')
  
 #Save all the results to a CSV
 results = pd.DataFrame({
@@ -217,6 +242,8 @@ results = pd.DataFrame({
     'B_openmc': B_openmc_array,
     'B_openmc_err': B_openmc_err_array,
     'B_hand': B_hand_array,
+    'H_dot_openmc_uSv_h': np.array(H_dot_array),
+    'H_dot_openmc_err_uSv_h': np.array(H_dot_err_array),
 })
 results_dir = Path(__file__).resolve().parent / 'Results'
 results_dir.mkdir(exist_ok=True)

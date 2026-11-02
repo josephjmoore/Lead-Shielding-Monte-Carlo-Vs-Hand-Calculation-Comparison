@@ -1041,3 +1041,9 @@
    Incoming Energy [684879.835737737, 700000.0000000001)
      Total Material
        Flux                                 0 +/- 0
+ =================>     TALLY 5: EFFECTIVE DOSE TALLY     <=================
+
+ Cell 2
+   Energy Function f([1.0e+04, ..., 1.0e+10]) = [6.9e-02, ..., 9.0e+01]
+     Total Material
+       Flux                                 3.17 +/- 1.98682e-08

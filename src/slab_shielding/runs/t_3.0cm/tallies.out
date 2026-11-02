@@ -1,21 +1,21 @@
- ===================>     TALLY 13: DETECTOR TALLY     <====================
+ ===================>     TALLY 16: DETECTOR TALLY     <====================
 
  Cell 17
    Total Material
      Flux                                 0.0498421 +/- 0.000319738
- ==================>     TALLY 14: UNCOLLIDED TALLY     <===================
+ ==================>     TALLY 17: UNCOLLIDED TALLY     <===================
 
  Incoming Energy [661900, 662100)
    Cell 17
      Total Material
        Flux                                 0.0293725 +/- 0.000244064
- ===================>     TALLY 15: AIR KERMA TALLY     <===================
+ ===================>     TALLY 18: AIR KERMA TALLY     <===================
 
  Energy Function f([1.0e+03, ..., 2.0e+07]) = [3.6e+00, ..., 2.6e-01]
    Cell 17
      Total Material
        Flux                                 0.000892934 +/- 5.60736e-06
- ===================>     TALLY 16: SPECTRUM TALLY     <====================
+ ===================>     TALLY 19: SPECTRUM TALLY     <====================
 
  Cell 17
    Incoming Energy [1000, 1022.0771053158205)
@@ -1041,3 +1041,9 @@
    Incoming Energy [684879.835737737, 700000.0000000001)
      Total Material
        Flux                                 0 +/- 0
+ ================>     TALLY 20: EFFECTIVE DOSE TALLY     <=================
+
+ Cell 17
+   Energy Function f([1.0e+04, ..., 1.0e+10]) = [6.9e-02, ..., 9.0e+01]
+     Total Material
+       Flux                                 0.146603 +/- 0.000937519
