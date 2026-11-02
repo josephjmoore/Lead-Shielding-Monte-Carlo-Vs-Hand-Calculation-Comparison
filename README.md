@@ -198,6 +198,20 @@ With so few contributions, the uncollided tally (the denominator of B) is very n
 
 ---
 
+### 5.4 Variance reduction attempt (weight windows)
+
+To extend the infinite-medium results beyond 7 cm (8.2 mfp), where analog Monte Carlo becomes unreliable, a separate version of the infinite-medium script used OpenMC's MAGIC weight windows. It had three modes: *analog*; *generation*, where a `WeightWindowGenerator` on a 1D spherical mesh produced `weight_windows.h5`; and *production*, where those windows were loaded and held fixed. The final attempt also enabled weight-window checks at surface crossings, and adjusted the windows by scaling them by r² and holding them constant beyond the detector. This script is not included because it did not produce converged results.
+
+**Findings.** At 7–10 cm, the production runs remained unconverged on a laptop. The uncollided tally, which has an exact answer, came out at 0.35–1.48 times the analytic value instead of 1.0, and the buildup factor errors were 18–87 %. Likely causes:
+
+1. In early runs, windows were checked only at collisions (OpenMC's default), so uncollided photons were never split.
+2. MAGIC aims for a uniform population everywhere, so it split photons travelling beyond the detector, and to make up for 1/r² spreading.
+3. Run sizes were limited by computing time (as few as 4 × 10⁴ histories).
+
+**Better-suited method.** FW-CADIS (Wagner et al., 2014) sets windows from a deterministic adjoint calculation of each region's importance to the target tally, so effort goes only where it helps the detector. However, OpenMC's FW-CADIS generator (the random ray solver) currently supports neutrons only (OpenMC forum).
+
+References: [Davis & Turner, MAGIC](https://scientific-publications.ukaea.uk/?p=3864) · [Wagner, Peplow & Mosher, *Nucl. Sci. Eng.* 176 (2014)](https://www.osti.gov/biblio/1115344) · [OpenMC User Guide: Variance Reduction](https://docs.openmc.org/en/latest/usersguide/variance_reduction.html) · [OpenMC forum: FW-CADIS for photons](https://openmc.discourse.group/t/weight-window-fw-cadis/6364)
+
 ## 6. Assumptions and limitations
 
 - Void everywhere except the lead. Air attenuation over 1 m at 0.662 MeV is under 1 %.
@@ -244,8 +258,6 @@ uv run python plot_comparison.py
 ---
 
 ## 8. Next steps
-
-- Converge the deep-penetration cases with weight windows (variance reduction).
 - Photon spectrum tally at the detector: scattered continuum and lead K X-rays (~75–85 keV).
 - Effective dose using ICRP-116 conversion coefficients.
 - Sensitivity of B_MC to the inner void radius.
