@@ -13,6 +13,14 @@ shield = openmc.Material(name='lead shield')
 shield.add_element('Pb', 1.0)
 shield.set_density('g/cm3', lead_density)
 shield_thickness = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0] #cm
+
+#Energy bins for the photon spectrum at the detector, in eV
+#300 log-spaced bins from 1 keV to 700 keV (each ~2% wide), plus 0.5 keV bins
+#from 70 to 90 keV to resolve the lead K X-rays (~73, 75, 85 keV) and K-edge (88 keV)
+spectrum_bins = np.unique(np.concatenate([
+    np.logspace(np.log10(1e3), np.log10(700e3), 301),
+    np.arange(70e3, 90e3 + 1.0, 0.5e3),
+])) #eV
  
 #Conversion from MeV/g/s to Gy/h
 MeV_per_g_s_to_Gy_per_h = MeV_to_J * g_to_kg * s_to_h
@@ -111,7 +119,13 @@ for t in shield_thickness:
     air_kerma_tally.filters.append(cell_filter)
     air_kerma_tally.scores.append('flux')
  
-    tallies = openmc.Tallies([tally, uncollided_tally, air_kerma_tally])
+    #Photon spectrum at the detector: flux in each energy bin
+    spectrum_tally = openmc.Tally(name='spectrum tally')
+    spectrum_tally.filters.append(cell_filter)
+    spectrum_tally.filters.append(openmc.EnergyFilter(spectrum_bins))
+    spectrum_tally.scores.append('flux')
+
+    tallies = openmc.Tallies([tally, uncollided_tally, air_kerma_tally, spectrum_tally])
  
     model = openmc.Model(geometry=geometry, materials=materials, settings=settings, tallies=tallies)
  
@@ -129,7 +143,23 @@ for t in shield_thickness:
         dose_result = sp.get_tally(name='air kerma tally')
         dose_tally_mean = dose_result.mean.item()
         dose_tally_err = dose_result.std_dev.item()
- 
+
+        #One value per energy bin
+        spectrum_result = sp.get_tally(name='spectrum tally')
+        spectrum_tally_mean = spectrum_result.mean.flatten()
+        spectrum_tally_err = spectrum_result.std_dev.flatten()
+
+    #Spectrum: flux in each energy bin in photons/cm^2/s, saved to its own CSV per thickness
+    spectrum = pd.DataFrame({
+        'E_low_eV': spectrum_bins[:-1],
+        'E_high_eV': spectrum_bins[1:],
+        'flux_per_bin': spectrum_tally_mean / V_det * S,
+        'flux_per_bin_err': spectrum_tally_err / V_det * S,
+    })
+    spectrum_dir = Path(__file__).resolve().parent / 'Results' / 'spectra'
+    spectrum_dir.mkdir(parents=True, exist_ok=True)
+    spectrum.to_csv(spectrum_dir / f'spectrum_t_{t}cm.csv', index=False)
+
     #Total flux (uncollided + scattered) - no hand-calc equivalent
     flux_openmc = flux_tally / V_det * S
     #Uncollided flux

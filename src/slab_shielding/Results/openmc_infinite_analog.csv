@@ -1,0 +1,2 @@
+mode,windows_used,thickness_cm,mfp,lead_beyond_cm,histories,run_time_s,K_total_openmc_uGy_h,K_total_openmc_err_uGy_h,K_total_hand_uGy_h,K_uncollided_openmc_uGy_h,K_uncollided_openmc_err_uGy_h,K_uncollided_hand_uGy_h,B_openmc,B_openmc_err,B_hand,FOM_total,FOM_uncollided,FOM_B
+Analog,False,8.0,9.38952,5.0,600000,2.445156666000912,2.4400258211005204,0.19007676588892808,2.4616399819657055,1.192196856601668,0.1093811906010331,0.9891096924943794,2.046663525062264,0.24633150308288243,2.488743160283705,67.39444264889785,48.58519630021178,28.232302284341642

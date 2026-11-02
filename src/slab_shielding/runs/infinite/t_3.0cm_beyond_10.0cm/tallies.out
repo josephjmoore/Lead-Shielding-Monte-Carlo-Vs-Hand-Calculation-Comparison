@@ -2,16 +2,16 @@
 
  Cell 8
    Total Material
-     Flux                                 0.00607097 +/- 3.16443e-05
+     Flux                                 0.00598722 +/- 0.000100059
  ===================>     TALLY 8: UNCOLLIDED TALLY     <===================
 
  Incoming Energy [661900, 662100)
    Cell 8
      Total Material
-       Flux                                 0.00296109 +/- 2.35193e-05
+       Flux                                 0.00287075 +/- 6.1022e-05
  ===================>     TALLY 9: AIR KERMA TALLY     <====================
 
  Energy Function f([1.0e+03, ..., 2.0e+07]) = [3.6e+00, ..., 2.6e-01]
    Cell 8
      Total Material
-       Flux                                 0.000101148 +/- 5.46736e-07
+       Flux                                 9.8731e-05 +/- 1.6629e-06
