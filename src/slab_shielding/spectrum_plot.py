@@ -89,8 +89,8 @@ for t in plot_thickness:
     #Empty bins can't be drawn on a log axis
     flux_plot = np.where(flux_per_lethargy > 0, flux_per_lethargy, np.nan)
 
-    ax1.stairs(flux_plot, edges_keV, color=colour, linewidth=1.5, label=f'{t:g} cm lead')
-    ax2.stairs(kerma_share_per_lethargy, edges_keV, color=colour, linewidth=1.5, label=f'{t:g} cm lead')
+    ax1.stairs(flux_plot, edges_keV, color=colour, linewidth=1.5, label=f'{t:g} cm concrete')
+    ax2.stairs(kerma_share_per_lethargy, edges_keV, color=colour, linewidth=1.5, label=f'{t:g} cm concrete')
 
     #Uncollided peak bin: its share of the dose is written in a box, because on a linear
     #axis it would dwarf the scattered part

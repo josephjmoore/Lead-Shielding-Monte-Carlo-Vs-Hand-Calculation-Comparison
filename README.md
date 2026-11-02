@@ -206,6 +206,27 @@ The effective dose rate (ICRP-116, AP geometry) was tallied with an `EnergyFunct
 
 Behind lead, effective dose follows air kerma closely: E/K rises only slightly with thickness (1.021 to 1.027 Sv/Gy), and the effective-dose buildup factor is within 0.6 % of the air kerma buildup factor. This is consistent with the spectrum (Section 4.4): the scattered dose comes mainly from forward-scattered photons above ~300 keV, where effective dose per unit air kerma is close to its value at 662 keV. Air kerma results for lead can therefore be converted to effective dose with the 662 keV ratio to within 1 %.
 
+### 4.6 Concrete
+
+The same models were run with NIST "Concrete, Ordinary" (2.30 g/cm³; μ/ρ = 0.0786 cm²/g at 0.662 MeV from XCOM, without coherent scattering, so 1 mfp ≈ 5.5 cm). Shield thicknesses ran from 0 to 40 cm (7.2 mfp), and the detector was moved to 2 m so that the thicker shield stays small compared with the source-detector distance. GP coefficients for concrete were taken from Shultis & Faw; these are for the ANS-6.4.3 concrete composition, which differs slightly from the NIST composition used here.
+
+![OpenMC vs hand calculation, concrete](src/slab_shielding/Results/Concrete/Concrete_openmc_vs_hand_calc.png)
+
+*Left: air kerma rate at 2 m. Middle: buildup factor for the finite concrete shell, the infinite-medium model and the GP formula. Right: OpenMC ÷ hand calculation.*
+
+![Photon spectrum, concrete](src/slab_shielding/Results/Concrete/Concrete_spectrum.png)
+
+*Photon spectrum at the detector (left) and share of the air kerma by energy (right) for 5, 15, 25 and 40 cm of concrete.*
+
+**Findings:**
+
+- **Validation.** The uncollided air kerma agrees with the analytic value within 0.5 % up to 20 cm, drifting to +5 ± 3 % at 40 cm, consistent with a ~0.5 % difference between OpenMC's ENDF/B-VIII.0 attenuation coefficient and XCOM, which grows as e^(Δμ·t). In the infinite-medium model OpenMC reproduces the GP buildup factor within 4 % across the full range, up to B ≈ 18 at 7.2 mfp. This is within the accuracy of the GP fit and the difference between the NIST and ANS concrete compositions.
+- **Much larger buildup.** Concrete absorbs scattered photons far less than lead, so the infinite-medium buildup factor reaches ~18 at 7.2 mfp, compared with ~2.2 for lead at the same depth.
+- **A much stronger finite-medium effect.** For the finite shell, the buildup factor falls to 0.79 of the GP value at 5 cm and 0.54 at 40 cm. The hand calculation overestimates the air kerma rate by 27 % at 5 cm, rising to 76 % at 40 cm, compared with at most ~21 % for lead. Point-kernel calculations with infinite-medium buildup factors are therefore conservative behind both materials, but much more so for concrete.
+- **A softer spectrum.** With no strong photoelectric absorption, multiply scattered photons survive down to ~40 keV, and the flux per unit lethargy is roughly flat from there up to 662 keV, unlike the steep fall below ~300 keV behind lead. There are no significant X-ray peaks.
+- **Scattered photons dominate the dose.** The uncollided share of the air kerma (1/B) falls from 63 % at 5 cm to 10 % at 40 cm, and the scattered dose extends down to ~100 keV rather than being concentrated above 300 keV as in lead.
+- **Effective dose departs from air kerma.** Because of the softer spectrum, the ratio of effective dose to air kerma rises from 1.02 Sv/Gy (unshielded) to 1.09 Sv/Gy at 40 cm, and the effective-dose buildup factor is up to 7 % higher than the air kerma one (under 0.6 % for lead). Behind concrete, converting air kerma to effective dose with the source-energy factor underestimates the effective dose by up to 7 %.
+
 ## 5. Discussion
 
 ### 5.1 The finite-medium effect
