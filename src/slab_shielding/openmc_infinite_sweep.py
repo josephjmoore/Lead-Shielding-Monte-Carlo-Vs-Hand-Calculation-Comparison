@@ -4,18 +4,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from params import (cross_sections, S, E, MeV_to_eV, lead_density,
-                    mu, air_energy, air_mu_en_rho, MeV_to_J, g_to_kg, s_to_h,
-                    e_dep, gp_buildup, Gy_to_uGy)
+from params import (cross_sections, S, E, MeV_to_eV, mu, air_energy,
+                    air_mu_en_rho, MeV_to_J, g_to_kg, s_to_h, e_dep, gp_buildup,
+                    Gy_to_uGy, Shield_Material, results_dir, runs_dir,
+                    make_shield, shield_thickness)
 
-#Create Shield Material
-shield = openmc.Material(name='lead shield')
-shield.add_element('Pb', 1.0)
-shield.set_density('g/cm3', lead_density)
-#Depths of the detector in the lead to sweep in cm
-shield_thickness = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0] #cm
-#Lead beyond the detector in cm (~12 mfp, effectively infinite)
-lead_beyond_detector = 10.0 #cm
+shield = make_shield()
+#Shield beyond the detector in cm (~12 mfp, effectively infinite)
+Shield_beyond_detector = {
+    'Lead': 10,
+    'Concrete': 67
+} #cm
+shield_beyond = Shield_beyond_detector[Shield_Material]
 
 #Conversion from MeV/g/s to Gy/h
 MeV_per_g_s_to_Gy_per_h = MeV_to_J * g_to_kg * s_to_h
@@ -76,9 +76,9 @@ materials = openmc.Materials([shield])
 openmc.config['cross_sections'] = cross_sections
 
 
-def run_infinite(shield_thickness, lead_beyond):
+def run_infinite(shield_thickness, shield_beyond):
     """Run the infinite-medium model for one depth and return the results."""
-    r_end = shield_thickness + lead_beyond
+    r_end = shield_thickness + shield_beyond
     geometry, detector_cell, V_det, flux_no_shield = build_infinite_geometry(shield_thickness, r_end)
 
     #Tallies
@@ -104,7 +104,7 @@ def run_infinite(shield_thickness, lead_beyond):
 
     model = openmc.Model(geometry=geometry, materials=materials, settings=settings, tallies=tallies)
 
-    run_dir = Path(__file__).resolve().parent / 'runs' / 'infinite' / f't_{shield_thickness}cm_beyond_{lead_beyond}cm'
+    run_dir = runs_dir / 'infinite' / f't_{shield_thickness}cm_beyond_{shield_beyond}cm'
     statepoint_path = model.run(cwd=run_dir)
     with openmc.StatePoint(statepoint_path) as sp:
         uncollided_result = sp.get_tally(name='uncollided tally')
@@ -134,7 +134,7 @@ def run_infinite(shield_thickness, lead_beyond):
     K_dot_uncollided_hand = flux_no_shield * np.exp(-mfp) * e_dep * MeV_per_g_s_to_Gy_per_h
     K_dot_hand = K_dot_uncollided_hand * B_hand
 
-    print(f'\n--- Lead thickness {shield_thickness} cm ({mfp:.2f} mfp), {lead_beyond} cm of lead beyond the detector ---')
+    print(f'\n--- {Shield_Material} thickness {shield_thickness} cm ({mfp:.2f} mfp), {shield_beyond} cm of {Shield_Material.lower()} beyond the detector ---')
     print(f'OpenMC air kerma rate   : {K_dot_openmc * Gy_to_uGy:.4g} +/- {K_dot_openmc_err * Gy_to_uGy:.2g} uGy/h')
     print(f'Hand-calc air kerma rate: {K_dot_hand * Gy_to_uGy:.4g} uGy/h')
     print(f'Difference               : {K_dot_openmc / K_dot_hand - 1:.1%}')
@@ -144,7 +144,7 @@ def run_infinite(shield_thickness, lead_beyond):
     return {
         'thickness_cm': shield_thickness,
         'mfp': mfp,
-        'lead_beyond_cm': lead_beyond,
+        'shield_beyond_cm': shield_beyond,
         'K_total_openmc_uGy_h': K_dot_openmc * Gy_to_uGy,
         'K_total_openmc_err_uGy_h': K_dot_openmc_err * Gy_to_uGy,
         'K_total_hand_uGy_h': K_dot_hand * Gy_to_uGy,
@@ -154,11 +154,12 @@ def run_infinite(shield_thickness, lead_beyond):
     }
 
 
-results_dir = Path(__file__).resolve().parent / 'Results'
-results_dir.mkdir(exist_ok=True)
+results_dir.mkdir(parents=True, exist_ok=True)
 
 #Depth sweep
 print('\n========== Depth sweep ==========')
-sweep = pd.DataFrame([run_infinite(t, lead_beyond_detector) for t in shield_thickness])
-sweep.to_csv(results_dir / 'openmc_infinite_sweep.csv', index=False)
-print(f'\nSweep results saved to {results_dir / "openmc_infinite_sweep.csv"}')
+#Skip t = 0: the detector shell would have a negative inner radius and the 1/r^2 flux is infinite
+sweep = pd.DataFrame([run_infinite(t, shield_beyond) for t in shield_thickness if t > 0])
+file_name = Shield_Material + '_openmc_infinite_sweep.csv'
+sweep.to_csv(results_dir / file_name, index=False)
+print(f'\nSweep results saved to {results_dir / file_name}')

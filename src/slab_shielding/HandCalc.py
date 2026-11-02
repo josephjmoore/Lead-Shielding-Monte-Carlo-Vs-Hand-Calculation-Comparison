@@ -2,10 +2,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from params import mu, K_dot_no_shield, Gy_to_uGy, gp_buildup, b, c, a, Xk, d
+from params import Shield_Material, mu, K_dot_no_shield, Gy_to_uGy, gp_buildup, b, c, a, Xk, d, results_dir
 
 #Shield thicknesses to sweep in cm
-shield_thickness = np.linspace(0.0, 10.0, 41) #cm
+shield_thickness = np.linspace(0.0, 50.0, 41) #cm
 
 #Number of mean free paths for each thickness
 mfp_s = mu * shield_thickness
@@ -39,16 +39,16 @@ ax1.plot(shield_thickness, K_dot_total * Gy_to_uGy,
 ax1.plot(shield_thickness, K_dot_uncollided * Gy_to_uGy,
          color=colour_uncollided, linewidth=2, linestyle='--', label='Uncollided only')
 ax1.set_yscale('log')
-ax1.set_xlabel('Lead thickness (cm)')
+ax1.set_xlabel(Shield_Material + ' thickness (cm)')
 ax1.set_ylabel('Air kerma rate at 1 m (µGy/h)')
-ax1.set_title('Cs-137 (1 GBq) behind lead', loc='left')
+ax1.set_title('Cs-137 (1 GBq) behind ' + Shield_Material, loc='left')
 ax1.legend(frameon=False)
 
 #Right: buildup factor against depth in mean free paths
 ax2.plot(mfp_s, B, color=colour_total, linewidth=2)
-ax2.set_xlabel('Lead thickness (mean free paths)')
+ax2.set_xlabel(Shield_Material + ' thickness (mean free paths)')
 ax2.set_ylabel('Exposure buildup factor B')
-ax2.set_title('GP buildup factor, lead, 0.662 MeV', loc='left')
+ax2.set_title('GP buildup factor,' + Shield_Material + ', 0.662 MeV', loc='left')
 ax2.set_ylim(bottom=1.0)
 
 #Keep gridlines and axes recessive so the data stands out
@@ -67,7 +67,6 @@ for ax in (ax1, ax2):
 fig.tight_layout()
 
 #Save the figure in a Results folder next to this script
-results_dir = Path(__file__).resolve().parent / 'Results'
 results_dir.mkdir(exist_ok=True)
 fig.savefig(results_dir / 'hand_calc_sweep.png', dpi=200)
 print(f'\nPlot saved to {results_dir / "hand_calc_sweep.png"}')

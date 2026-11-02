@@ -3,12 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from params import E, air_energy, air_mu_en_rho, loglog_interp
+from params import E, air_energy, air_mu_en_rho, loglog_interp, Shield_Material, spectrum_dir, results_dir, shield_thickness
 
-#Lead thicknesses to plot (cm); any without a spectrum file are skipped
-plot_thickness = [1.0, 3.0, 5.0, 7.0]
-
-spectrum_dir = Path(__file__).resolve().parent / 'Results' / 'spectra'
+#thicknesses to plot (cm); any without a spectrum file are skipped
+plot_thickness = shield_thickness[1::2]
 
 #Features to mark on the plot, in keV
 electron_rest_energy = 0.511 #MeV
@@ -127,7 +125,7 @@ for ax in (ax1, ax2):
                     ha='center', va='bottom', fontsize=8, color=colour_feature)
 
 ax1.set_ylabel('Flux per unit lethargy (photons cm$^{-2}$ s$^{-1}$)')
-ax1.set_title('Photon spectrum at the \ndetector (1 m, 1 GBq Cs-137)', loc='left', pad=110)
+ax1.set_title('Photon spectrum at the \ndetector (1 GBq Cs-137)', loc='left', pad=110)
 ax2.set_ylabel('Share of total air kerma per unit lethargy')
 ax2.set_title('Air Kerma Share', loc='left', pad=110)
 
@@ -150,9 +148,9 @@ fig.legend(handles, labels, loc='lower center', ncol=len(labels), frameon=False)
 fig.tight_layout(rect=(0, 0.07, 1, 1))
 
 #Save the figure in the Results folder next to this script
-results_dir = Path(__file__).resolve().parent / 'Results'
+file_name = Shield_Material + "_spectrum.png"
 results_dir.mkdir(exist_ok=True)
-fig.savefig(results_dir / 'spectrum.png', dpi=200)
-print(f'\nPlot saved to {results_dir / "spectrum.png"}')
+fig.savefig(results_dir / file_name, dpi=200)
+print(f'\nPlot saved to {results_dir / file_name}')
 
 plt.show()

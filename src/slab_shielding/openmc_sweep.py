@@ -4,15 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
  
-from params import (cross_sections, S, E, MeV_to_eV, flux_no_shield, lead_density,
+from params import (cross_sections, S, E, MeV_to_eV, flux_no_shield,
                     r_detector, r_in, r_det_in, r_det_out, r_end, V_det, mu, air_energy,
-                    air_mu_en_rho, MeV_to_J, g_to_kg, s_to_h, e_dep, K_dot_no_shield, gp_buildup, Gy_to_uGy)
- 
-#Create Shield Material
-shield = openmc.Material(name='lead shield')
-shield.add_element('Pb', 1.0)
-shield.set_density('g/cm3', lead_density)
-shield_thickness = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0] #cm
+                    air_mu_en_rho, MeV_to_J, g_to_kg, s_to_h, e_dep, K_dot_no_shield, gp_buildup, 
+                    Gy_to_uGy, Shield_Material, results_dir, spectrum_dir, runs_dir,
+                    make_shield, shield_thickness)
+
 
 #Energy bins for the photon spectrum at the detector, in eV
 #300 log-spaced bins from 1 keV to 700 keV (each ~2% wide), plus 0.5 keV bins
@@ -26,7 +23,8 @@ spectrum_bins = np.unique(np.concatenate([
 MeV_per_g_s_to_Gy_per_h = MeV_to_J * g_to_kg * s_to_h
 #Conversion from pSv/s to uSv/h
 pSv_per_s_to_uSv_per_h = 3600 * 1e-6
- 
+
+shield = make_shield()
  
 def build_geometry(shield_thickness):
     """Build the spherical geometry for one lead thickness (cm).
@@ -48,7 +46,7 @@ def build_geometry(shield_thickness):
  
         source_void_cell = openmc.Cell(name='source void', region=-shield_inner_surface)
  
-        shield_cell = openmc.Cell(name='lead shield', region=+shield_inner_surface & -shield_outer_surface)
+        shield_cell = openmc.Cell(name=f'{Shield_Material} shield', region=+shield_inner_surface & -shield_outer_surface)
         shield_cell.fill = shield
  
         gap_cell = openmc.Cell(name='gap', region=+shield_outer_surface & -detector_inner_surface)
@@ -141,7 +139,7 @@ for t in shield_thickness:
  
     model = openmc.Model(geometry=geometry, materials=materials, settings=settings, tallies=tallies)
  
-    run_dir = Path(__file__).resolve().parent / 'runs' / f't_{t}cm'
+    run_dir = runs_dir / f't_{t}cm'
     statepoint_path = model.run(cwd=run_dir)
     with openmc.StatePoint(statepoint_path) as sp:
         result = sp.get_tally(name='detector tally')
@@ -172,7 +170,7 @@ for t in shield_thickness:
         'flux_per_bin': spectrum_tally_mean / V_det * S,
         'flux_per_bin_err': spectrum_tally_err / V_det * S,
     })
-    spectrum_dir = Path(__file__).resolve().parent / 'Results' / 'spectra'
+
     spectrum_dir.mkdir(parents=True, exist_ok=True)
     spectrum.to_csv(spectrum_dir / f'spectrum_t_{t}cm.csv', index=False)
 
@@ -245,7 +243,8 @@ results = pd.DataFrame({
     'H_dot_openmc_uSv_h': np.array(H_dot_array),
     'H_dot_openmc_err_uSv_h': np.array(H_dot_err_array),
 })
-results_dir = Path(__file__).resolve().parent / 'Results'
+
+file_name = Shield_Material + '_openmc_sweep.csv'
 results_dir.mkdir(exist_ok=True)
-results.to_csv(results_dir / 'openmc_sweep.csv', index=False)
-print(f'\nResults saved to {results_dir / "openmc_sweep.csv"}')
+results.to_csv(results_dir / file_name, index=False)
+print(f'\nResults saved to {results_dir / file_name}')

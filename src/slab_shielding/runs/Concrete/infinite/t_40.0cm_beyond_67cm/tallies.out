@@ -1,0 +1,17 @@
+ ===================>     TALLY 19: DETECTOR TALLY     <====================
+
+ Cell 20
+   Total Material
+     Flux                                 0.00493533 +/- 5.82351e-05
+ ==================>     TALLY 20: UNCOLLIDED TALLY     <===================
+
+ Incoming Energy [661900, 662100)
+   Cell 20
+     Total Material
+       Flux                                 7.54732e-05 +/- 2.44887e-06
+ ===================>     TALLY 21: AIR KERMA TALLY     <===================
+
+ Energy Function f([1.0e+03, ..., 2.0e+07]) = [3.6e+00, ..., 2.6e-01]
+   Cell 20
+     Total Material
+       Flux                                 2.66006e-05 +/- 3.11992e-07
